@@ -1,0 +1,18 @@
+<div class th:fragment="html" xmlns:th="http://www.thymeleaf.org">
+    <a href="">
+        <img id="logo" src="img/site/logo.gif" class="logo">
+    </a>
+    <form action="search" method="get" >
+        <div class="searchDiv">
+            <input name="keyword" type="text" placeholder="时尚男鞋  太阳镜 ">
+            <button  type="submit" class="searchButton">搜索</button>
+            <div class="searchBelow">
+				<span th:each="category,status:${#servletContext.getAttribute('categories')}" th:if="${status.index}<4">
+					<a th:href="@{'category?cid='+${category.id}}" th:text="${category.name}"></a>
+					<span th:if="${status.index}<3">|</span>
+	            </span>
+
+            </div>
+        </div>
+    </form>
+</div>

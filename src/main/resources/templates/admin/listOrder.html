@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="include/admin/adminHeader::html('订单管理')" ></head>
+<body>
+<div th:replace="include/admin/adminNavigator::html" ></div>
+<script>
+    $(function (){
+        let data4Vue = {
+            uri:"orders",
+            orders:[],
+            pagination:''
+        };
+        let vue = new Vue({
+            el:"#workingArea",
+            data:data4Vue,
+            mounted:function (){
+              this.listOrders();
+            },
+            methods:{
+                listOrders:function (){
+                    let url = this.uri;
+                    axios.get(url).then(function (response){
+                        vue.orders = response.data.list;
+                        vue.pagination = response.data;
+                    })
+                },
+                jump:function (page){
+                    jump(page,vue);
+                },
+                jumpByNumber:function (start){
+                    jumpByNumber(start,vue);
+                },
+                listOrdersItems:function (oid){
+                    //使默认隐藏的控件显示出来。
+                    $("#orderItemsTR"+oid).show();
+                },
+                deliveryOrder:function (oid,event){
+                    let url = "deliveryOrder/"+oid;
+                    axios.put(url).then(function (response){
+                        $(event.target).hide();
+                    });
+                }
+            }
+        });
+        Vue.filter("formatDateFilter",function (value){
+            if (!value) return '';
+            return moment(value).format("YYYY-MM-DD HH:mm:ss");
+        })
+    })
+</script>
+
+<div id="workingArea" >
+    <h1 class="label label-info" >订单管理</h1>
+    <br>
+    <br>
+
+    <div class="listDataTableDiv">
+        <table class="table table-striped table-bordered table-hover  table-condensed">
+            <thead>
+            <tr class="success">
+                <th>订单号</th>
+                <th>状态</th>
+                <th>金额</th>
+                <th width="100px">商品数量</th>
+                <th width="100px">买家名称</th>
+                <th>创建时间</th>
+                <th>支付时间</th>
+                <th>发货时间</th>
+                <th>确认收货时间</th>
+                <th width="120px">操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- 在业务上需要一个订单数据产生两行 tr, 此时就不能在 tr上进行 v-for, 而需要用 template 标签 -->
+            <template v-for="order in orders ">
+                <tr >
+                    <td>
+                        {{order.orderCode}}
+                    </td>
+                    <td>
+                        {{order.statusDesc}}
+                    </td>
+                    <td>
+                        {{order.total}}
+                    </td>
+                    <td>
+                        {{order.totalNumber}}
+                    </td>
+                    <td>
+                        {{order.user.name}}
+                    </td>
+                    <td>
+                        {{order.createDate | formatDateFilter}}
+                    </td>
+                    <td>
+                        {{order.payDate | formatDateFilter}}
+                    </td>
+                    <td>
+                        {{order.deliveryDate | formatDateFilter}}
+                    </td>
+                    <td>
+                        {{order.confirmDate | formatDateFilter}}
+                    </td>
+                    <td>
+                        <button @click="listOrdersItems(order.id)"  class="orderPageCheckOrderItems btn btn-primary btn-xs">查看详情</button>
+
+                        <button v-if="order.status=='waitDelivery'" @click="deliveryOrder(order.id,$event)" class="btn btn-primary btn-xs">发货</button>
+                    </td>
+                </tr>
+                <!--下面默认是隐藏的，需要在js中使用$().show() 才能显示出来-->
+                <tr class="orderPageOrderItemTR"  :id="'orderItemsTR'+order.id">
+                    <td colspan="10" align="center">
+
+                        <div  class="orderPageOrderItem">
+                            <table width="800px" align="center" class="orderPageOrderItemTable">
+                                <tr v-for="oit in order.orderItems">
+                                    <td align="left">
+                                        <img width="40px" height="40px" :src="'img/productSingle_small/'+oit.product.productImage.id+'.jpg'">
+                                    </td>
+
+                                    <td>
+                                        <a href="">
+                                            <span>{{oit.product.name}}</span>
+                                        </a>
+                                    </td>
+                                    <td align="right">
+
+                                        <span class="text-muted">{{oit.number}}</span>
+                                    </td>
+                                    <td align="right">
+                                        <span class="text-muted">单价：￥{{oit.product.promotePrice}}</span>
+                                    </td>
+
+                                </tr>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+            </template>
+            </tbody>
+        </table>
+    </div>
+
+    <div th:replace="include/admin/adminPage::html" ></div>
+
+
+</div>
+
+<div th:replace="include/admin/adminFooter::html" ></div>
+</body>
+</html>

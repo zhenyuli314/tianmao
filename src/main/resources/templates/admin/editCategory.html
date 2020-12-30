@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:include="include/admin/adminHeader::html('编辑分类')">
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div th:replace="include/admin/adminNavigator::html"></div>
+<script>
+    $(function (){
+
+        let data4Vue={
+            uri:"categories",
+            listUrl:"listCategory",
+            bean:{
+                id:0,
+                name:''
+            },
+            file:null
+        }
+        let vue = new Vue({
+            el:"#workingArea",
+            data:data4Vue,
+            mounted:function (){
+                this.get();
+            },
+            methods:{
+                get:function (){
+                    let id = getUrlParms('id');
+                    let url = this.uri+"/"+id;
+
+                    //1.放id
+                    // vue.bean.id = id;
+                    axios.get(url).then(function (response){
+                        //2.放name，下面用双向绑定进行更新
+                        vue.bean=response.data;
+                        console.log(vue.bean)
+                    })
+                },
+                getFile:function (event){
+                    //3.放图像
+                    this.file = event.target.files[0];
+                },
+                update:function (){
+                    let url=this.uri;
+
+                    console.log(vue.file)
+
+                    let formData = new FormData();
+                    formData.append("file",vue.file);
+                    formData.append("name",vue.bean.name);
+                    formData.append("id",vue.bean.id);
+
+                    // console.log(formData.get("file"))
+
+                    axios.put(url,formData).then(function (response){
+
+                        location.href=vue.listUrl;
+
+                    });
+                }
+            }
+        });
+
+    })
+</script>
+
+<div id="workingArea">
+    <ol class="breadcrumb">
+        <li><a href="listCategory">所有分类</a></li>
+        <li class="active">编辑分类</li>
+    </ol>
+
+    <div class="panel panel-warning addDiv">
+        <div class="panel-heading">编辑分类</div>
+        <div class="panel-body">
+            <table class="addTable">
+                <tr>
+                    <td>分类名称</td>
+                    <td><input type="text" class="form-control" v-model.trim="bean.name"></td>
+                </tr>
+                <tr>
+                    <td>分类图片</td>
+                    <td>
+                        <input type="file" accept="image/*" id="imgUpload" name="image" @change="getFile($event)">
+                    </td>
+                </tr>
+                <tr class="submitTR">
+                    <td colspan="2" align="center">
+                        <a href="#nowhere" class="btn btn-success" @click="update()">提交</a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

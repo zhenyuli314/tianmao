@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:include="include/admin/adminHeader::html('属性管理')">
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div th:replace="include/admin/adminNavigator::html"></div>
+
+<script>
+    $(function () {
+        let data4Vue = {
+            uri: "properties",
+            beans: [],
+            bean: {
+                id: 0,
+                name: "",
+                cid:0
+            },
+            pagination: {},
+            category:{id:0,name:""}
+        }
+        let vue = new Vue({
+            el: "#workingArea",
+            data: data4Vue,
+            mounted: function () {
+                this.getCategory();
+                this.list(1);
+            },
+            methods: {
+                list: function (start) {
+
+                    let url = "categories/"+this.bean.cid+"/"+this.uri + "?start=" + start;
+
+                    axios.get(url).then(function (response) {
+                        vue.beans = response.data.list;
+                        vue.pagination = response.data;
+                    });
+                },
+                jump: function (page) {
+                    jump(page, vue);
+                },
+                jumpByNumber: function (start) {
+                    jumpByNumber(start, vue)
+                },
+                getCategory: function () {
+                    this.bean.cid = getUrlParms("cid");
+                    let url = "categories/" + this.bean.cid;
+
+                    axios.get(url).then(function (response) {
+                        vue.category = response.data;
+                        console.log(this)
+                    });
+                },
+                add:function (){
+                    let url = this.uri;
+                    // $.ajax({
+                    //         url:url,
+                    //         data:JSON.stringify(this.bean),
+                    //         contentType:"application/json;charset=UTF-8",
+                    //         type:"post"
+                    // })
+                    axios.post(url,this.bean).then(function (response){
+                        vue.list(1);
+                        vue.bean.name="";
+                    })
+                },
+                deleteBean(id){
+                    if (!checkDeleteLink()){
+                        return ;
+                    }
+                    let url = this.uri+"/"+id;
+                    axios.delete(url).then(function (response){
+                        vue.list(1);
+                    })
+                }
+            }
+        })
+    })
+</script>
+
+<div id="workingArea">
+    <ol class="breadcrumb">
+        <li><a href="listCategory">所有分类</a></li>
+        <li><a :href="'listProperty?cid='+category.id">{{category.name}}</a></li>
+        <li class="active">属性管理</li>
+    </ol>
+
+    <div class="listDataTableDiv">
+        <table class="table table-striped table-bordered table-hover  table-condensed">
+            <thead>
+            <tr class="success">
+                <th>ID</th>
+                <th>属性名称</th>
+                <th>编辑</th>
+                <th>{{category.name}}</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-for="bean in beans">
+                <td>{{bean.id}}</td>
+                <td>{{bean.name}}</td>
+                <td>
+                    <a :href="'editProperty?id='+bean.id+'&categoryId='+category.id"><span class="glyphicon glyphicon-edit"></span></a>
+                </td>
+                <td>
+                    <a href="#nowhere"><span class="glyphicon glyphicon-trash" @click="deleteBean(bean.id)"></span></a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div th:replace="include/admin/adminPage::html"></div>
+
+    <div class="panel panel-warning addDiv">
+        <div class="panel-heading">新增属性</div>
+        <div class="panel-body">
+            <table class="addTable">
+                <tr>
+                    <td>属性名称</td>
+                    <td><input type="text" class="form-control" v-model="bean.name"></td>
+                </tr>
+
+                <tr class="submitTR">
+                    <td colspan="2" align="center">
+                        <a href="#nowhere" class="btn btn-success" @click="add()">提交</a>
+                    </td>
+                </tr>
+
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<div th:replace="include/admin/adminFooter::html"></div>
+
+</body>
+</html>

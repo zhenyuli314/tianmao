@@ -1,0 +1,10 @@
+<div th:fragment="html"> 	
+	<div class="categoryMenu">
+				<div v-for="c in categories" :cid="c.id" class="eachCategory" >
+					<span class="glyphicon glyphicon-link"></span>
+					<a :href="'category?cid='+c.id">
+						{{c.name}}
+					</a>
+				</div>
+	</div>  
+</div>
